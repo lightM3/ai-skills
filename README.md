@@ -10,7 +10,7 @@ so each one has a measured effect (Δ) instead of a claimed one.
 
 | Plugin | Skills | Status |
 |---|---|---|
-| `mobil-flutter` | `flutter-riverpod`, `flutter-bloc`, `flutter-material-ui` | ✅ evaluated |
+| `mobil-flutter` | `flutter-riverpod`, `flutter-bloc`, `flutter-material-ui`, `flutter-upgrade` | ✅ evaluated |
 | | `go_router` | evals only — no skill needed (see below) |
 | `mobil-android` | — | planned |
 | `mobil-ios` | — | planned |
@@ -64,6 +64,26 @@ In `mui-new-screen`, Haiku copies the import from the existing files, while the 
 Earlier runs of the last three cases were discarded: their "must not contain" regexes also matched
 the model's explanations, not just its imports. They now match `import` lines only.
 
+`flutter-upgrade` (2026-11-06). One skill for every Flutter upgrade: `SKILL.md` holds the
+workflow (find from/to versions, read each release note in between, `dart fix`, platform files,
+analyze), and `references/<version>.md` holds one file per release (3.38, 3.44, 3.47 so far).
+Each new Flutter release adds a file instead of a new skill.
+
+| Case | Default: with / without | Δ | Haiku: with / without | Δ |
+|---|---|---|---|---|
+| `upgrade-dart-apis` — `describeEnum`, final `IconData`, `onReorderItem` (drop `newIndex -= 1`), `ScrollCacheExtent` | 1.00 / 1.00 | 0.00 | 1.00 / 0.40 | **+0.60** |
+| `upgrade-android-kotlin` — AGP 9 built-in Kotlin, `compilerOptions`, gradle.properties flags, plugin check | 0.83 / 0.67 | +0.17 | 1.00 / 0.67 | **+0.33** |
+| `upgrade-ios-uiscene` — Xcode 27 + custom AppDelegate → `didInitializeImplicitFlutterEngine` | 1.00 / 1.00 | 0.00 | 1.00 / 0.88 | +0.12 |
+| `upgrade-ignores-feature-work` — must not fire on ordinary work | 1.00 / 1.00 | 0.00 ✓ | — | — |
+
+2 runs per arm. 3.38 (UIScene) and 3.44 (May 2026) mostly fall inside the default model's
+training data, so its gains are small; the 3.47 notes and smaller models benefit most. The skill
+fired in every upgrade run and in none of the feature-work runs.
+
+Note on baselines: `--ablation none` is **not** a clean no-skill baseline — the plugin's other
+skills are still listed, and their descriptions leak facts (the model learned `material_ui` exists
+from a skill description). Use the default with/without ablation for Δ.
+
 ### go_router: no skill needed
 
 Four hard cases (typed routes with the go_router_builder 4 mixin, auth redirect with `state.uri`,
@@ -102,8 +122,11 @@ ai-skills/
         ├── skills/
         │   ├── flutter-riverpod/        # <platform>-<library>
         │   │   └── SKILL.md
-        │   └── flutter-bloc/
-        │       └── SKILL.md
+        │   ├── flutter-bloc/
+        │   ├── flutter-material-ui/
+        │   └── flutter-upgrade/
+        │       ├── SKILL.md             # upgrade workflow
+        │       └── references/3.47.md   # one file per Flutter release
         └── evals/                       # one folder per test case
             ├── riverpod-*/  bloc-*/       # positive cases
             ├── ignores-bloc-project/    # negative: Riverpod skill must NOT fire
