@@ -10,8 +10,7 @@ so each one has a measured effect (Δ) instead of a claimed one.
 
 | Plugin | Skills | Status |
 |---|---|---|
-| `mobil-flutter` | `flutter-riverpod`, `flutter-bloc`, `flutter-material-ui`, `flutter-upgrade` | ✅ evaluated |
-| | `flutter-release` | 🚧 measuring |
+| `mobil-flutter` | `flutter-riverpod`, `flutter-bloc`, `flutter-material-ui`, `flutter-upgrade`, `flutter-release` | ✅ evaluated |
 | | `go_router` | evals only — no skill needed (see below) |
 | `mobil-android` | — | planned |
 | `mobil-ios` | — | planned |
@@ -88,7 +87,18 @@ from a skill description). Use the default with/without ablation for Δ.
 `flutter-release` (2026-11-06) — Play and App Store release: signing, AAB/IPA builds, and the
 dated store rules (Play target API 36 since 31 Aug 2026, 16 KB pages by 1 Feb 2027, Xcode 26 since
 28 Apr 2026, privacy manifests) in `references/store-rules.md` with sources and re-check dates.
-Results: measuring.
+
+| Case | Default: with / without | Δ | Haiku: with / without | Δ |
+|---|---|---|---|---|
+| `release-16kb-pages` — 1 Feb 2027 deadline, AGP ≥ 8.5.1, NDK r28+, plugin `.so` files, verification | 1.00 / 0.00 | **+1.00** | 1.00 / 0.00 | **+1.00** |
+| `release-play-config` — first Play release: API 36, release signing via key.properties, AAB, app ID | 1.00 / 0.00 | **+1.00** | 1.00 / 1.00 | 0.00 |
+| `release-ios-upload-rejected` — ITMS-90725 (Xcode 26) + ITMS-91053 (privacy manifest `CA92.1`) | 1.00 / 0.88 | +0.12 | 1.00 / 0.88 | +0.12 |
+| `release-ignores-feature-work` — must not fire on ordinary work | 1.00 / 1.00 | 0.00 ✓ | — | — |
+
+2 runs per arm. The skill fired in every release run and in none of the feature-work runs.
+Without the skill, the default model kept `targetSdk = 35` (the 2025 rule) on the Play release.
+Haiku's Play baseline varied between runs (1/2 passed in an earlier baseline, 2/2 here).
+The iOS case gives away part of the answer: the rejection email itself names Xcode 26.
 
 ### go_router: no skill needed
 
