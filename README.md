@@ -53,13 +53,16 @@ Haiku guesses wrong.
 |---|---|---|---|---|
 | `mui-migrate-app` — `dart fix --code=migrate_design_widgets`, delegates, compatibility bridge | 1.00 / 0.00 | **+1.00** | 0.93 / 0.00 | **+0.93** |
 | `mui-type-mismatch` — diagnose `ThemeData` from two libraries | 1.00 / 0.17 | **+0.83** | 1.00 / 0.00 | **+1.00** |
-| `mui-new-screen` — new screen uses `package:material_ui` | re-measuring¹ | | | |
-| `mui-cupertino-screen` — `package:cupertino_ui` + direct dependency | re-measuring¹ | | | |
-| `mui-ignores-legacy-project` — no migration in a Flutter 3.24 app | re-measuring¹ | | — | |
+| `mui-cupertino-screen` — `package:cupertino_ui` + direct dependency | 1.00 / 0.00 | **+1.00** | 1.00 / 0.00 | **+1.00** |
+| `mui-new-screen` — new screen uses `package:material_ui` | 1.00 / 0.00 | **+1.00** | 1.00 / 1.00 | 0.00 |
+| `mui-ignores-legacy-project` — no migration in a Flutter 3.24 app | 1.00 / 1.00 | 0.00 ✓ | — | — |
 
 3 runs per arm. One default-model baseline run of `mui-type-mismatch` hit a usage limit and scored 0.
-¹ The first run's "must not contain" regexes also matched the model's explanations, not just its
-imports; fixed to match `import` lines only, results pending.
+In `mui-new-screen`, Haiku copies the import from the existing files, while the default model writes
+`package:flutter/material.dart` without the skill. The skill's trigger is weakest on this case
+(fired 1/3 default, 0/3 Haiku), yet every with-skill run passed.
+Earlier runs of the last three cases were discarded: their "must not contain" regexes also matched
+the model's explanations, not just its imports. They now match `import` lines only.
 
 ### go_router: no skill needed
 
