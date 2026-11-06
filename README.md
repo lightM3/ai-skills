@@ -10,8 +10,8 @@ so each one has a measured effect (Δ) instead of a claimed one.
 
 | Plugin | Skills | Status |
 |---|---|---|
-| `mobil-flutter` | `flutter-riverpod`, `flutter-bloc` | ✅ evaluated |
-| | `flutter-provider` | planned |
+| `mobil-flutter` | `flutter-riverpod`, `flutter-bloc`, `flutter-material-ui` | ✅ evaluated |
+| | `go_router` | evals only — no skill needed (see below) |
 | `mobil-android` | — | planned |
 | `mobil-ios` | — | planned |
 | `backend-go` | — | planned |
@@ -44,8 +44,36 @@ already gets most of it right; the skill matters most for smaller models.
 Default model: 2 runs per arm (3 for the stream case); Haiku: 3 runs per arm. The skill fired in
 8/8 default-model Bloc runs, 11/12 Haiku Bloc runs, and 0/2 Riverpod runs.
 
-**Lesson:** skills pay off most where the library's API changed recently or splits by version
-(Riverpod 2.x → 3.x), and for smaller models on stable libraries (Bloc).
+`flutter-material-ui` (2026-11-06). Flutter 3.47 (Aug 2026) moved Material and Cupertino out of
+the SDK into the `material_ui` / `cupertino_ui` packages — after the models' training data.
+Without the skill, the default model correctly refuses to guess package names, so it can't help;
+Haiku guesses wrong.
+
+| Case | Default: with / without | Δ | Haiku: with / without | Δ |
+|---|---|---|---|---|
+| `mui-migrate-app` — `dart fix --code=migrate_design_widgets`, delegates, compatibility bridge | 1.00 / 0.00 | **+1.00** | 0.93 / 0.00 | **+0.93** |
+| `mui-type-mismatch` — diagnose `ThemeData` from two libraries | 1.00 / 0.17 | **+0.83** | 1.00 / 0.00 | **+1.00** |
+| `mui-new-screen` — new screen uses `package:material_ui` | re-measuring¹ | | | |
+| `mui-cupertino-screen` — `package:cupertino_ui` + direct dependency | re-measuring¹ | | | |
+| `mui-ignores-legacy-project` — no migration in a Flutter 3.24 app | re-measuring¹ | | — | |
+
+3 runs per arm. One default-model baseline run of `mui-type-mismatch` hit a usage limit and scored 0.
+¹ The first run's "must not contain" regexes also matched the model's explanations, not just its
+imports; fixed to match `import` lines only, results pending.
+
+### go_router: no skill needed
+
+Four hard cases (typed routes with the go_router_builder 4 mixin, auth redirect with `state.uri`,
+`StatefulShellRoute.indexedStack`, the 16.3 `onEnter` + `Block.then` API) — the default model
+passed all of them **without** a skill (2/2 runs each). Haiku only missed `onEnter`. The cases stay
+in `evals/router-*` as a baseline to re-run when go_router changes.
+
+**Lessons:**
+- Skills pay off most for changes **after the model's training data** (Flutter 3.47's
+  `material_ui`), for version splits (Riverpod 2.x → 3.x), and for smaller models on stable
+  libraries (Bloc).
+- A fast-moving API is not enough on its own: go_router changed 8 major versions in two years,
+  but all before the cutoff, so the model already knows it. Measure before writing the skill.
 
 ## Install
 

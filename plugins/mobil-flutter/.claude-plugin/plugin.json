@@ -1,7 +1,7 @@
 {
   "name": "mobil-flutter",
-  "version": "0.2.0",
-  "description": "Flutter skills that keep Claude on current APIs and idiomatic patterns: Riverpod, Bloc, Provider.",
+  "version": "0.3.0",
+  "description": "Flutter skills that keep Claude on current APIs and idiomatic patterns: Riverpod, Bloc, standalone Material/Cupertino (material_ui).",
   "author": {
     "name": "lightM3",
     "url": "https://github.com/lightM3"
@@ -9,12 +9,15 @@
   "repository": "https://github.com/lightM3/ai-skills",
   "license": "MIT",
   "keywords": [
-    "flutter",
-    "dart",
-    "riverpod",
     "bloc",
+    "cupertino_ui",
+    "dart",
+    "flutter",
+    "flutter-3.47",
+    "material_ui",
+    "mobile",
     "provider",
-    "state-management",
-    "mobile"
+    "riverpod",
+    "state-management"
   ]
 }
