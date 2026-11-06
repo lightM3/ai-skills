@@ -11,6 +11,7 @@ so each one has a measured effect (Δ) instead of a claimed one.
 | Plugin | Skills | Status |
 |---|---|---|
 | `mobil-flutter` | `flutter-riverpod`, `flutter-bloc`, `flutter-material-ui`, `flutter-upgrade` | ✅ evaluated |
+| | `flutter-release` | 🚧 measuring |
 | | `go_router` | evals only — no skill needed (see below) |
 | `mobil-android` | — | planned |
 | `mobil-ios` | — | planned |
@@ -83,6 +84,11 @@ fired in every upgrade run and in none of the feature-work runs.
 Note on baselines: `--ablation none` is **not** a clean no-skill baseline — the plugin's other
 skills are still listed, and their descriptions leak facts (the model learned `material_ui` exists
 from a skill description). Use the default with/without ablation for Δ.
+
+`flutter-release` (2026-11-06) — Play and App Store release: signing, AAB/IPA builds, and the
+dated store rules (Play target API 36 since 31 Aug 2026, 16 KB pages by 1 Feb 2027, Xcode 26 since
+28 Apr 2026, privacy manifests) in `references/store-rules.md` with sources and re-check dates.
+Results: measuring.
 
 ### go_router: no skill needed
 
