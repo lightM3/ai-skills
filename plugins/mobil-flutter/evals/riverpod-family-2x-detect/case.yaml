@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: riverpod-family-2x-detect
+context:
+  scaffold_script: fixture.sh

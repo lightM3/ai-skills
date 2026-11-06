@@ -1,0 +1,101 @@
+# ai-skills
+
+Focused, eval-tested skills for Claude, organized as a plugin marketplace:
+**domain → platform/technology plugin → one skill per library or tool.**
+
+Every skill ships with an eval suite that runs the same tasks **with and without** the skill,
+so each one has a measured effect (Δ) instead of a claimed one.
+
+## Plugins
+
+| Plugin | Skills | Status |
+|---|---|---|
+| `mobil-flutter` | `flutter-riverpod` | 🚧 in progress |
+| | `flutter-bloc`, `flutter-provider` | planned |
+| `mobil-android` | — | planned |
+| `mobil-ios` | — | planned |
+| `backend-go` | — | planned |
+
+## Results
+
+`flutter-riverpod`, 3 runs per arm, Claude Code default model (2026-11-05):
+
+| Case | With skill | Without | Δ |
+|---|---|---|---|
+| `riverpod-optimistic-mounted` — `ref.mounted` after `await` in 3.x | 1.00 | 0.33 | **+0.67** |
+| `riverpod-tests-3x` — `ProviderContainer.test`, repo overrides | 1.00 | 0.33 | **+0.67** |
+| `riverpod-codegen-silent` — discover codegen, build_runner step | 1.00 | 0.80 | **+0.20** |
+| `riverpod-family-2x-detect` — 2.x family, no 3.x APIs | 1.00 | 0.83 | **+0.17** |
+| `ignores-bloc-project` — must not fire in a Bloc app | 1.00 | 1.00 | 0.00 ✓ |
+
+The skill fired in 12/12 Riverpod runs and 0/3 Bloc runs.
+
+## Install
+
+In Claude Code:
+
+```bash
+claude plugin marketplace add lightM3/ai-skills
+claude plugin install mobil-flutter@lightm3-skills
+```
+
+Only want one skill? Every skill folder is self-contained — copy
+`plugins/<plugin>/skills/<skill>/` into your project's `.claude/skills/`,
+or zip it and upload it as a skill on claude.ai.
+
+## Layout
+
+```
+ai-skills/
+├── .claude-plugin/marketplace.json      # lists every plugin
+└── plugins/
+    └── mobil-flutter/                   # <domain>-<platform>
+        ├── .claude-plugin/plugin.json
+        ├── skills/
+        │   └── flutter-riverpod/        # <platform>-<library>
+        │       └── SKILL.md
+        └── evals/                       # one folder per test case
+            ├── riverpod-async-notifier-3x/
+            ├── riverpod-family-manual-3x/
+            └── ignores-bloc-project/    # negative case: must NOT fire
+```
+
+### Conventions
+
+- **Plugin name:** `<domain>-<platform>` — `mobil-flutter`, `backend-go`.
+- **Skill name:** `<platform>-<library>` — `flutter-riverpod`, `flutter-bloc`.
+  The prefix keeps names unambiguous when a skill is copied out on its own.
+- **One skill = one library.** Mutually exclusive tools (Riverpod vs Bloc) are separate skills,
+  and each skill's `description` says when *not* to use it.
+- **Every skill needs evals:** at least two positive cases and one negative case.
+- A skill only earns its place if it beats the no-skill baseline. Δ ≈ 0 means Claude already
+  does this well — cut or rethink the skill.
+
+## Running evals
+
+Requires Claude Code v2.1.269+. From a plugin folder:
+
+```bash
+cd plugins/mobil-flutter
+claude plugin eval . --scaffold                        # all cases, with vs. without plugin
+claude plugin eval . --scaffold --tag hard --runs 1    # quick check of the hard cases
+claude plugin eval . --scaffold --tag hard --model haiku   # does the skill help a smaller model?
+```
+
+- `--scaffold` is needed for cases with a `case.yaml` + `fixture.sh`: the script builds a small
+  fake project (pubspec, lib/) so Claude has to *discover* the Riverpod version and style.
+  On Windows it runs through Git Bash.
+- Cases tagged `hard` give no version hints in the prompt; the older `smoke` cases do, and
+  serve as regression checks (Claude already passes them without the skill).
+- The summary shows `WITH`, `W/OUT` and `Δ` per case; results go to `evals/results/` (git-ignored).
+
+## Adding a new plugin
+
+1. `mkdir -p plugins/<domain>-<platform>/{.claude-plugin,skills,evals}`
+2. Add `plugin.json` (its `name` must equal the marketplace entry name).
+3. Add the entry to `.claude-plugin/marketplace.json`.
+4. `claude plugin validate .` from the repo root.
+
+## License
+
+MIT

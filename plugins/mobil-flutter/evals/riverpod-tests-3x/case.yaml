@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: riverpod-tests-3x
+context:
+  scaffold_script: fixture.sh

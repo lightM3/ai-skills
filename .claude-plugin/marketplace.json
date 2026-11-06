@@ -1,0 +1,15 @@
+{
+  "name": "lightm3-skills",
+  "description": "Focused, eval-tested Claude skills, grouped by domain and technology.",
+  "owner": {
+    "name": "lightM3",
+    "url": "https://github.com/lightM3"
+  },
+  "plugins": [
+    {
+      "name": "mobil-flutter",
+      "source": "./plugins/mobil-flutter",
+      "description": "Flutter skills: state management (Riverpod, Bloc, Provider) and more."
+    }
+  ]
+}
