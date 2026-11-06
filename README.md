@@ -10,8 +10,8 @@ so each one has a measured effect (Δ) instead of a claimed one.
 
 | Plugin | Skills | Status |
 |---|---|---|
-| `mobil-flutter` | `flutter-riverpod` | 🚧 in progress |
-| | `flutter-bloc`, `flutter-provider` | planned |
+| `mobil-flutter` | `flutter-riverpod`, `flutter-bloc` | ✅ evaluated |
+| | `flutter-provider` | planned |
 | `mobil-android` | — | planned |
 | `mobil-ios` | — | planned |
 | `backend-go` | — | planned |
@@ -29,6 +29,23 @@ so each one has a measured effect (Δ) instead of a claimed one.
 | `ignores-bloc-project` — must not fire in a Bloc app | 1.00 | 1.00 | 0.00 ✓ |
 
 The skill fired in 12/12 Riverpod runs and 0/3 Bloc runs.
+
+`flutter-bloc` (2026-11-06). Bloc's API has been stable since 8.0, so the strongest model
+already gets most of it right; the skill matters most for smaller models.
+
+| Case | Default model Δ | Haiku: with / without | Haiku Δ |
+|---|---|---|---|
+| `bloc-stream-subscription` — `emit.forEach` + `restartable()`, no `.listen` + `emit` | +0.13 | 0.93 / 0.53 | **+0.40** |
+| `bloc-cubit-convention` — follow Cubit + sealed states, immutable list updates | +0.17 | 1.00 / 0.89 | +0.11 |
+| `bloc-search-debounce` — debounce + restartable transformer, no `Timer` | 0.00 | 0.93 / 0.80 | +0.13 |
+| `bloc-widget-test-mock` — `MockCubit`, `BlocProvider.value`, `whenListen`, `verify` | 0.00 | 0.78 / 0.67 | +0.11 |
+| `ignores-riverpod-project` — must not fire in a Riverpod app | 0.00 ✓ | — | — |
+
+Default model: 2 runs per arm (3 for the stream case); Haiku: 3 runs per arm. The skill fired in
+8/8 default-model Bloc runs, 11/12 Haiku Bloc runs, and 0/2 Riverpod runs.
+
+**Lesson:** skills pay off most where the library's API changed recently or splits by version
+(Riverpod 2.x → 3.x), and for smaller models on stable libraries (Bloc).
 
 ## Install
 
@@ -52,12 +69,14 @@ ai-skills/
     └── mobil-flutter/                   # <domain>-<platform>
         ├── .claude-plugin/plugin.json
         ├── skills/
-        │   └── flutter-riverpod/        # <platform>-<library>
+        │   ├── flutter-riverpod/        # <platform>-<library>
+        │   │   └── SKILL.md
+        │   └── flutter-bloc/
         │       └── SKILL.md
         └── evals/                       # one folder per test case
-            ├── riverpod-async-notifier-3x/
-            ├── riverpod-family-manual-3x/
-            └── ignores-bloc-project/    # negative case: must NOT fire
+            ├── riverpod-*/  bloc-*/       # positive cases
+            ├── ignores-bloc-project/    # negative: Riverpod skill must NOT fire
+            └── ignores-riverpod-project/# negative: Bloc skill must NOT fire
 ```
 
 ### Conventions
@@ -80,12 +99,13 @@ cd plugins/mobil-flutter
 claude plugin eval . --scaffold                        # all cases, with vs. without plugin
 claude plugin eval . --scaffold --tag hard --runs 1    # quick check of the hard cases
 claude plugin eval . --scaffold --tag hard --model haiku   # does the skill help a smaller model?
+claude plugin eval . --scaffold --tag bloc-hard --model haiku
 ```
 
 - `--scaffold` is needed for cases with a `case.yaml` + `fixture.sh`: the script builds a small
   fake project (pubspec, lib/) so Claude has to *discover* the Riverpod version and style.
   On Windows it runs through Git Bash.
-- Cases tagged `hard` give no version hints in the prompt; the older `smoke` cases do, and
+- Cases tagged `hard` (Riverpod) and `bloc-hard` give no version or library hints in the prompt; the older `smoke` cases do, and
   serve as regression checks (Claude already passes them without the skill).
 - The summary shows `WITH`, `W/OUT` and `Δ` per case; results go to `evals/results/` (git-ignored).
 
