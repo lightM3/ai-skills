@@ -10,7 +10,7 @@ so each one has a measured effect (Δ) instead of a claimed one.
 
 | Plugin | Skills | Status |
 |---|---|---|
-| `mobil-flutter` | `flutter-riverpod`, `flutter-bloc`, `flutter-material-ui`, `flutter-upgrade`, `flutter-release` | ✅ evaluated |
+| `mobil-flutter` | `flutter-riverpod`, `flutter-bloc`, `flutter-material-ui`, `flutter-upgrade`, `flutter-release`, `flutter-genui` | ✅ evaluated |
 | | `go_router` | evals only — no skill needed (see below) |
 | `mobil-android` | — | planned |
 | `mobil-ios` | — | planned |
@@ -99,6 +99,22 @@ dated store rules (Play target API 36 since 31 Aug 2026, 16 KB pages by 1 Feb 20
 Without the skill, the default model kept `targetSdk = 35` (the 2025 rule) on the Play release.
 Haiku's Play baseline varied between runs (1/2 passed in an earlier baseline, 2/2 here).
 The iOS case gives away part of the answer: the rejection email itself names Xcode 26.
+
+`flutter-genui` (2026-11-06) — Flutter's GenUI SDK (`package:genui` 0.10, A2UI v0.9): an LLM builds
+UI from a catalog of Flutter widgets. genui renamed almost every class across 0.6–0.10, so models
+write the old API (`GenUiConversation`, `A2uiMessageProcessor`, `ContentGenerator`, …).
+
+| Case | Default: with / without | Δ | Haiku: with / without | Δ |
+|---|---|---|---|---|
+| `genui-migrate-old-api` — port 0.6 code to `Conversation` / `SurfaceController` / `A2uiTransportAdapter` | 1.00 / 0.00 | **+1.00** | 1.00 / 0.00 | **+1.00** |
+| `genui-chat-setup` — new chat screen: transport adapter → `addChunk`, events, `Surface` | 1.00 / 0.40 | **+0.60** | 0.90 / 0.20 | **+0.70** |
+| `genui-custom-item` — `CatalogItem` + `S.object` schema + `copyWith` | 1.00 / 1.00 | 0.00 | 1.00 / 1.00 | 0.00 |
+| `genui-ignores-plain-chat` — no genui in a plain chat UI | 1.00 / 1.00 | 0.00 ✓ | — | — |
+
+2 runs per arm. The catalog-item API barely changed, so models already get it right. The first
+migration and custom-item runs were re-graded after fixing two rubric problems: a regex that matched
+old names in the explanation, and a judge that penalised "couldn't write the file". Both rubrics now
+grade only the Dart code.
 
 ### go_router: no skill needed
 
