@@ -4,18 +4,62 @@
 eval suite that runs the same tasks with and without the skill, so each has a measured effect (Δ)
 instead of a claimed one. If a skill doesn't beat the baseline, it doesn't ship.
 
+Models are confidently out of date. Ask one to "upgrade to the latest Android Gradle Plugin" and it
+picks a version from its training data; ask it to audit a Play release and it quotes last year's
+deadlines. These skills carry the current, dated facts — with sources and re-check dates — plus
+the workflow to apply them to *your* project.
+
 | Highlights | Without skill | With skill |
 |---|---|---|
 | Migrating an app to Flutter 3.47's standalone `material_ui` / `cupertino_ui` | 0.00 | **1.00** |
+| Native Android: upgrade to the latest AGP (9.5 + Gradle 9.6, built-in Kotlin, kapt, new DSL) | 0.00 | **1.00** |
+| Native Android: audit against Play's 2027 policy & quality deadlines (location, call log, DEX/memory, trader status) | 0.00 | **1.00** |
+| Native Android: jump targetSdk 34 → 37 with every change mapped to its Android version | 0.25 | **1.00** |
+| Native Android: Material3 1.5 migration (`SliderState`, `rememberBottomSheetState`, renames) | 0.00 | **1.00** |
 | Fixing a Google Play "16 KB page size" warning (deadline 1 Feb 2027) | 0.00 | **1.00** |
-| First Play release — target API 36 (required since Aug 2026), release signing | 0.00 | **1.00** |
 | Porting `genui` code to the 0.10 API | 0.00 | **1.00** |
 | Riverpod 3.x: `ref.mounted` after `await`, `ProviderContainer.test` | 0.33 | **1.00** |
-| Native Android: upgrade to the latest AGP (9.5 + Gradle 9.6, built-in Kotlin, kapt, new DSL) | 0.00 | **1.00** |
-| Native Android: Compose BOM 2026.09 needs compileSdk 37 + AGP ≥ 9.2 | 0.00 | **1.00** |
-| Native Android: widget crash after targetSdk 37 (RemoteViews bitmap cap) | 0.00 | **1.00** |
 
 Default Claude Code model, 2–3 runs per arm; full tables below.
+
+## Quick start
+
+In Claude Code:
+
+```bash
+claude plugin marketplace add lightM3/ai-skills
+claude plugin install mobil-android@lightm3-skills   # native Android (Kotlin, Gradle, Compose, Play)
+claude plugin install mobil-flutter@lightm3-skills   # Flutter
+```
+
+Skills load on their own when a task matches — just ask *"upgrade our build to the latest AGP"*
+or *"what breaks if we move to targetSdk 37?"*. Only want one skill? Every skill folder is
+self-contained: copy `plugins/<plugin>/skills/<skill>/` into your project's `.claude/skills/`,
+or zip it and upload it as a skill on claude.ai.
+
+## What's inside
+
+### `mobil-android` — native Android
+
+| Skill | Use it when you… |
+|---|---|
+| `android-agp` | upgrade AGP/Gradle (8.x → 9.5, or within 9.x), migrate to built-in Kotlin and the new DSL, adopt the 9.3 `optimization {}` DSL, or fix post-upgrade build errors |
+| `android-target-sdk` | raise targetSdk/compileSdk — per-version references for Android 15, 16 and 17 (API 35–37) — or debug something that broke after a bump |
+| `android-play` | ship to Google Play, fix Console warnings (target API, 16 KB pages), audit against upcoming policy/quality deadlines, or distribute APKs outside Play (developer verification) |
+| `android-compose` | upgrade the Compose BOM / Material3 (current: BOM 2026.09.00; M3 1.5 RC) and fix what the upgrade breaks |
+
+### `mobil-flutter` — Flutter
+
+| Skill | Use it when you… |
+|---|---|
+| `flutter-riverpod` | write or migrate Riverpod 2.x / 3.x code |
+| `flutter-bloc` | write Bloc/Cubit code, transformers and tests |
+| `flutter-material-ui` | move to the standalone `material_ui` / `cupertino_ui` packages (Flutter 3.47+) |
+| `flutter-upgrade` | upgrade Flutter (per-release references: 3.38, 3.44, 3.47) |
+| `flutter-release` | release to Play / App Store with current store rules |
+| `flutter-genui` | build generative UI with `package:genui` 0.10 |
+
+Planned: `mobil-ios`, `backend-go`.
 
 **Focus:** things that changed after the models' training data, version splits, and patterns models
 keep getting wrong. It deliberately does *not* repeat general Flutter or Android guidance — use the official
@@ -25,17 +69,9 @@ localization, and this repo for the rest. Measured negatives are published too
 
 Organized as a plugin marketplace: **domain → platform/technology plugin → one skill per library or tool.**
 
-## Plugins
-
-| Plugin | Skills | Status |
-|---|---|---|
-| `mobil-flutter` | `flutter-riverpod`, `flutter-bloc`, `flutter-material-ui`, `flutter-upgrade`, `flutter-release`, `flutter-genui` | ✅ evaluated |
-| | `go_router` | evals only — no skill needed (see below) |
-| `mobil-android` | `android-agp`, `android-target-sdk`, `android-compose`, `android-play` | ✅ evaluated |
-| `mobil-ios` | — | planned |
-| `backend-go` | — | planned |
-
 ## Results
+
+### mobil-flutter
 
 `flutter-riverpod`, 3 runs per arm, Claude Code default model (2026-11-05):
 
@@ -137,65 +173,73 @@ grade only the Dart code.
 
 ### mobil-android
 
-All four skills were measured on 2026-11-07: 2 runs per arm, default model and Haiku, default
-with/without ablation. The prompts carry no version hints; each `fixture.sh` builds a small Gradle
-project the model has to read. The baseline was taken before any skill existed (so no description
-could leak into it) and repeated as the "without" arm.
+Measured 2026-11-07 (v0.2.0): 2 runs per arm, default with/without ablation. Prompts carry no
+version hints; each `fixture.sh` builds a small Gradle project the model has to read. Every
+positive case was first baselined with the skills folder removed, so no skill description could
+leak into it. Default model: all 16 cases on v0.2.0. Haiku: the four v0.2.0 cases below were run on
+v0.2.0; the other Haiku numbers come from v0.1.0 of the same skills (marked †).
 
-`android-agp` — AGP 9.x upgrades. Latest stable AGP 9.5.0 (Oct 2026, Gradle 9.6.0), built-in Kotlin
-(remove `kotlin-android`, `kotlinOptions` → `kotlin { compilerOptions }`, kapt → KSP or
+**`android-agp`** — AGP 9.x upgrades: latest stable 9.5.0 (Oct 2026, Gradle 9.6.0), built-in Kotlin
+(drop `kotlin-android`, `kotlinOptions` → `kotlin { compilerOptions }`, kapt → KSP or
 `com.android.legacy-kapt`), the new DSL (`BaseExtension` gone, non-generic `CommonExtension`,
-`applicationVariants` → `androidComponents`), and the 9.0 default changes (`targetSdk` now defaults to
-`compileSdk`).
+`applicationVariants` → `androidComponents`), 9.0 default changes, and a 9.1 → 9.5 table (R8
+repackaging, `keepattributes` wildcards, `optimization {}` + `keepRules/*.keep`, per-module
+`android.newDsl.optOut`).
 
 | Case | Default: with / without | Δ | Haiku: with / without | Δ |
 |---|---|---|---|---|
-| `agp-upgrade-latest` — AGP 8.13 → 9.5, Gradle 9.6, built-in Kotlin, kapt, variant API, explicit targetSdk | 1.00 / 0.00 | **+1.00** | 1.00 / 0.00 | **+1.00** |
-| `agp-newdsl-classcast` — `ClassCastException` on `BaseExtension` in a convention plugin | 1.00 / 0.75 | +0.25 | 1.00 / 0.50 | **+0.50** |
+| `agp-upgrade-latest` — 8.13 → 9.5, Gradle 9.6, built-in Kotlin, kapt, variant API, explicit targetSdk | 1.00 / 0.00 | **+1.00** | 1.00 / 0.00 † | **+1.00** |
+| `agp-9x-optimization-dsl` — 9.0 → 9.5, `optimization {}`, keepRules, per-module opt-out, keepattributes | 1.00 / 0.00 | **+1.00** | 1.00 / 0.00 | **+1.00** |
+| `agp-newdsl-classcast` — `ClassCastException` on `BaseExtension` in a convention plugin | 1.00 / 1.00 | 0.00 | 1.00 / 0.50 † | **+0.50** |
+| `agp-ignores-add-dependency` — adding Retrofit is not an upgrade | 1.00 / 1.00 | 0.00 ✓ | — | — |
 
-Without the skill, both models pick an older AGP as "latest" and keep `kotlin-android` and kapt.
-The new-DSL error is mostly inside the default model's training data (1 of 2 baseline runs passed).
-
-`android-target-sdk` — raising targetSdk/compileSdk, with one reference file per API level
-(`references/37.md`: Android 17 behavior changes, for target 37 and for all apps).
-
-| Case | Default: with / without | Δ | Haiku: with / without | Δ |
-|---|---|---|---|---|
-| `sdk37-widget-bitmaps` — `updateAppWidget` throws after targetSdk 37; budget 6 × screen w × h | 1.00 / 0.00 | **+1.00** | 1.00 / 0.00 | **+1.00** |
-| `sdk37-target-bump` — SMS OTP delay, `ACCESS_LOCAL_NETWORK`, resizability opt-out gone, `FLAG_SECURE`, BAL `ALLOW_IF_VISIBLE` | 1.00 / 1.00 | 0.00 | 0.67 / 0.67 | 0.00 |
-
-The default model already knew most Android 17 changes from the betas (17 Jun 2026 stable release is
-close to its cutoff), so the review case gives no Δ. Haiku's judge verdicts went from 0/2 to 2/2 with
-the skill, but one with-skill run wrote the change in prose instead of a `targetSdk = 37` line and
-missed that regex, so the scores tie. Without the skill, both models downsample the widget
-bitmaps correctly but never connect the crash to the targetSdk 37 change — the actual cause.
-
-`android-play` — Play and off-Play distribution rules in `references/rules.md`, with sources and
-re-check dates: target API 36 since 31 Aug 2026, 16 KB pages by 1 Feb 2027, and Android developer
-verification (enforced since 30 Sep 2026 in Brazil, Indonesia, Singapore and Thailand; global in 2027).
+**`android-target-sdk`** — raising targetSdk/compileSdk with one reference file per API level
+(`references/35.md`, `36.md`, `37.md`), including where a later version removes an earlier opt-out.
 
 | Case | Default: with / without | Δ | Haiku: with / without | Δ |
 |---|---|---|---|---|
-| `play-update-rules` — targetSdk 35 → 36, 16 KB date, AGP ≥ 8.5.1, NDK r28, vendor `.so` | 1.00 / 0.50 | **+0.50** | 0.63 / 0.25 | **+0.38** |
-| `play-sideload-verification` — website APK in Indonesia: register package + signing key | 1.00 / 0.33 | **+0.67** | 1.00 / 0.33 | **+0.67** |
+| `sdk37-widget-bitmaps` — `updateAppWidget` throws after targetSdk 37; budget 6 × screen w × h | 1.00 / 0.00 | **+1.00** | 1.00 / 0.00 † | **+1.00** |
+| `sdk-jump-34-to-37` — edge-to-edge, FGS limits, `removeFirst`, predictive back, reflection, grouped by version | 1.00 / 0.25 | **+0.75** | 0.75 / 0.50 | +0.25 |
+| `sdk37-target-bump` — SMS OTP delay, `ACCESS_LOCAL_NETWORK`, resizability opt-out, `FLAG_SECURE`, BAL | 1.00 / 1.00 | 0.00 | 0.67 / 0.67 † | 0.00 |
+| `target-sdk-ignores-permission-feature` — a camera-permission flow is not a migration | 1.00 / 1.00 | 0.00 ✓ | — | — |
 
-Without the skill, the default model knew the API 36 rule but dated the 16 KB requirement to
-1 Nov 2025 (it's 1 Feb 2027 for updates), and it knew developer verification only as "September 2026",
-inventing a D-U-N-S requirement and a fee. Haiku's with-skill misses are regex formatting
-(`targetSdk = 35` → `36`, "Feb 2027" without a day); its judge verdicts passed 2/2.
+The default model already knows most Android 17 changes from the betas (stable rollout began
+17 Jun 2026, close to its cutoff), so the single-version review gives no Δ. Without the skill it
+downsamples the widget bitmaps but never ties the crash to the targetSdk 37 change; on the
+34 → 37 jump it hedges or drops whole versions. Haiku's 34 → 37 runs are noisy (1/2 passed in each
+arm on the version regex; judge verdicts 2/2 with the skill vs 1/2 without).
 
-`android-compose` — Compose upgrades: current BOM (2026.09.00 = Compose 1.12.1, Material3 1.4.0),
-Compose 1.12's compileSdk 37 + AGP ≥ 9.2 requirement, the 1.11–1.12 deprecations and renames, and the
-Material3 1.5 RC changes (flagged as not yet in a stable BOM).
+**`android-play`** — dated Play and off-Play rules in `references/rules.md`, each with a source and a
+re-check date: target API 36 (since 31 Aug 2026), 16 KB pages (1 Feb 2027), the 29 Oct 2026 policy
+update (fine-location declaration and the end of call-log verification on 27 Jan 2027, local-network
+declaration), Feb 2027 memory and DEX-optimization thresholds, Apr 2027 zero-tap sign-in, trader status
+(1 Feb 2027), and Android developer verification (enforced since 30 Sep 2026 in Brazil, Indonesia,
+Singapore, Thailand; global in 2027).
 
 | Case | Default: with / without | Δ | Haiku: with / without | Δ |
 |---|---|---|---|---|
-| `compose-bom-latest` — BOM 2026.09.00, compileSdk 37 + AGP ≥ 9.2, `onFirstVisible` → `onVisibilityChanged`, `TextObfuscationMode.System` | 1.00 / 0.00 | **+1.00** | 1.00 / 0.00 | **+1.00** |
-| `android-ignores-feature-work` — plain Kotlin task must fire none of the four skills | 1.00 / 1.00 | 0.00 ✓ | — | — |
+| `play-policy-audit` — location, call log, local network, R8/DEX, memory, zero-tap sign-in, trader status | 1.00 / 0.00 | **+1.00** | 1.00 / 0.00 | **+1.00** |
+| `play-update-rules` — targetSdk 35 → 36, 16 KB date, AGP ≥ 8.5.1, NDK r28, vendor `.so` | 1.00 / 0.25 | **+0.75** | 0.63 / 0.25 † | +0.38 |
+| `play-sideload-verification` — website APK in Indonesia: register package + signing key | 1.00 / 0.33 | **+0.67** | 1.00 / 0.33 † | **+0.67** |
+| `play-ignores-in-app-review` — integrating In-App Review is not a policy question | 1.00 / 1.00 | 0.00 ✓ | — | — |
 
-Only one positive Compose case so far; a second one should be added before the next Compose release.
-Every skill fired in all of its own with-skill runs (14/14 default, 14/14 Haiku) and none fired on
-the negative case (0/2).
+Without the skill the default model dated the 16 KB rule to 1 Nov 2025, knew developer verification
+only as "September 2026" (inventing a D-U-N-S requirement and a fee), and knew none of the 2027 policy
+or quality deadlines.
+
+**`android-compose`** — current versions (BOM 2026.09.00 = Compose 1.12.1, Material3 1.4.0), Compose
+1.12's compileSdk 37 + AGP ≥ 9.2 requirement, 1.11–1.12 deprecations and renames, and the Material3
+1.5 RC migration (flagged as not yet in a stable BOM).
+
+| Case | Default: with / without | Δ | Haiku: with / without | Δ |
+|---|---|---|---|---|
+| `compose-bom-latest` — BOM 2026.09.00, compileSdk 37 + AGP ≥ 9.2, `onVisibilityChanged`, `TextObfuscationMode.System` | 1.00 / 0.00 | **+1.00** | 1.00 / 0.00 † | **+1.00** |
+| `compose-m3-rc-migration` — `SliderState`, `RangeSliderState`, `rememberBottomSheetState`, `FilledTonalToggleButton`, `motionScheme` | 1.00 / 0.00 | **+1.00** | 1.00 / 0.00 | **+1.00** |
+| `compose-ignores-new-screen` — a plain settings screen is not an upgrade | 1.00 / 1.00 | 0.00 ✓ | — | — |
+
+Shared negative `android-ignores-feature-work` (a slug helper + tests) fires none of the four skills.
+Across the default-model runs every skill fired in all of its own with-skill runs (22/22) and in none
+of the five negative cases (0/10).
 
 ### go_router: no skill needed
 
@@ -213,20 +257,8 @@ in `evals/router-*` as a baseline to re-run when go_router changes.
 - "Latest version" questions are where models fail hardest (AGP, Compose BOM): without a skill they
   confidently name an outdated version. Releases near the cutoff (Android 17 betas) are often already
   known — the AGP new-DSL and Android 17 review cases showed little or no Δ for the default model.
-
-## Install
-
-In Claude Code:
-
-```bash
-claude plugin marketplace add lightM3/ai-skills
-claude plugin install mobil-flutter@lightm3-skills
-claude plugin install mobil-android@lightm3-skills
-```
-
-Only want one skill? Every skill folder is self-contained — copy
-`plugins/<plugin>/skills/<skill>/` into your project's `.claude/skills/`,
-or zip it and upload it as a skill on claude.ai.
+- Multi-version jumps beat single-version reviews as eval cases: the model may know each release,
+  but it loses track of which version removed which opt-out.
 
 ## Layout
 
@@ -249,6 +281,9 @@ ai-skills/
             ├── ignores-bloc-project/    # negative: Riverpod skill must NOT fire
             └── ignores-riverpod-project/# negative: Bloc skill must NOT fire
 ```
+
+`plugins/mobil-android/` follows the same shape; `android-target-sdk/references/<api>.md` holds one
+file per Android version, `android-play/references/rules.md` the dated store rules.
 
 ### Conventions
 

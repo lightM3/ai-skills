@@ -6,8 +6,18 @@ description: Raising an Android app's targetSdk/compileSdk to a new API level (A
 # Android targetSdk migration
 
 Platform behavior changes are mostly newer than the model's training data. **The newest Android is
-Android 17 = API 37** (stable rollout to Pixels started 17 Jun 2026). Use the per-version file in
-`references/` (`references/37.md`) instead of remembered lists. Verified 2026-11-07; if the current date is
+Android 17 = API 37** (stable rollout to Pixels started 17 Jun 2026). Use the per-version files in
+`references/` instead of remembered lists:
+
+| File | Version | Biggest breakers |
+|---|---|---|
+| `references/35.md` | Android 15 | edge-to-edge enforced, dataSync/mediaProcessing 6 h FGS limit, BOOT_COMPLETED can't start FGS, `removeFirst()` crash |
+| `references/36.md` | Android 16 | edge-to-edge opt-out ignored, predictive back (`onBackPressed` not called), large-screen orientation locks ignored |
+| `references/37.md` | Android 17 | SMS OTP 3 h delay, `ACCESS_LOCAL_NETWORK`, widget bitmap cap throws, resizability opt-out gone, `static final` reflection |
+
+A jump of several levels (e.g. 34 → 37) means reading **every** file in between — changes stack, and
+a later version can remove an earlier opt-out (edge-to-edge: opt-out at 35, gone at 36; large screens:
+opt-out at 36, gone at 37). Group findings by the version that introduces them. Verified 2026-11-07; if the current date is
 after 2027-06-30, a newer Android (API 38) has probably shipped — tell the user to check
 developer.android.com/about/versions.
 

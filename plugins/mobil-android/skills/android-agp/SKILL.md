@@ -1,6 +1,6 @@
 ---
 name: android-agp
-description: Upgrading or fixing an Android Gradle Plugin (AGP) build — bumping AGP/Gradle to the latest version, migrating to AGP 9 (built-in Kotlin, the new DSL), or fixing build/sync errors after an AGP bump such as "Cannot add extension with name 'kotlin'", "The 'org.jetbrains.kotlin.android' plugin is no longer required", kapt incompatibility, removed applicationVariants/variantFilter, or "ApplicationExtensionImpl$AgpDecorated_Decorated cannot be cast to BaseExtension" in build-logic. Holds the current AGP versions. Not for adding ordinary dependencies or app feature work.
+description: Upgrading or fixing an Android Gradle Plugin (AGP) build — bumping AGP/Gradle to the latest version, migrating to AGP 9 or between 9.x releases (built-in Kotlin, the new DSL, per-module new-DSL opt-out, the 9.3 optimization DSL and keepRules, R8 keep-rule behavior changes), or fixing build/sync errors after an AGP bump such as "Cannot add extension with name 'kotlin'", "The 'org.jetbrains.kotlin.android' plugin is no longer required", kapt incompatibility, removed applicationVariants/variantFilter, or "ApplicationExtensionImpl$AgpDecorated_Decorated cannot be cast to BaseExtension" in build-logic. Holds the current AGP versions. Not for adding ordinary dependencies or app feature work.
 ---
 
 # Android Gradle Plugin upgrades (AGP 9.x)
@@ -144,6 +144,41 @@ App bundles (AAB) are what Play needs anyway.
   (`buildFeatures { resValues = true }`); `aidl`/`renderScript` global properties removed.
 - Removed variant-API names: `minSdkVersion`/`targetSdkVersion` → `minSdk`/`targetSdk`,
   `ComponentBuilder.enabled` → `enable`, `finalizeDSl` → `finalizeDsl`.
+
+## 4. Upgrading within 9.x (9.0 → 9.5)
+
+Read each step you cross. Sources: developer.android.com/build/releases/agp-9-N-0-release-notes.
+
+| AGP | Released | Min Gradle | What matters when upgrading |
+|---|---|---|---|
+| 9.1 | Apr 2026 (9.1.1) | 9.3.1 | R8 **repackages classes into the default package by default** (like `-repackageclasses`) → code that reflects on class/package names needs keep rules, or opt out with `-dontrepackage`. `-maximumremovedandroidloglevel` accepts names (`WARN`, `DEBUG`, ...). Max API 37. |
+| 9.2 | Apr 2026 | 9.4.1 | R8: `-keepattributes` **wildcards (`*`, `*Annotation*`, `*Invisible*`) no longer keep `RuntimeInvisibleAnnotations` / `RuntimeInvisibleParameterAnnotations` / `RuntimeInvisibleTypeAnnotations`** → name them explicitly if CLASS-retention annotations must survive. Negated member names in rules (`!*ForTesting(...)`). Experimental unified test/coverage reports (`android.experimental.reportAggregationSupport=true`). Compose 1.12 requires ≥ 9.2. |
+| 9.3 | Jul 2026 | 9.5.0 | New **`optimization` DSL** per build type (below); keep rules in `src/<variant>/keepRules/*.keep` (also works with the legacy DSL, and as KMP consumer rules); `./gradlew :app:analyzeReleaseR8Config` (R8 Configuration Analyzer). |
+| 9.4 | Sep 2026 | 9.6.0 | **Per-module new-DSL opt-out**: `android.newDsl.optOut=:legacy-module` in gradle.properties (AGP 10 makes the new Variant API mandatory). Dynamic-feature flavor-dimension parity warnings; `android.enforceDynamicFeatureVariantMatching=true` makes them errors (default in AGP 10). |
+| 9.5 | Oct 2026 | 9.6.0 | Experimental backup/restore test suites (`testOptions.backupTests`, `android.experimental.testSuiteSupport=true` + `android.experimental.enableBackupTest=true`). Fix: `optimization { enable = true }` now sets `isMinifyEnabled` on the variant. No breaking changes listed. |
+
+### Release shrinking on AGP ≥ 9.3
+
+```kotlin
+android {
+    buildTypes {
+        release {
+            optimization {
+                enable = true // code optimization + resource shrinking + default Android keep rules
+            }
+        }
+    }
+}
+```
+
+- Replaces `isMinifyEnabled = true` + `isShrinkResources = true` +
+  `proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), ...)` (the legacy DSL still works).
+- Move custom rules from `proguard-rules.pro` into `app/src/main/keepRules/<name>.keep`. Whether
+  `proguardFiles` is still read alongside the new DSL is not stated in the docs — move the rules rather than rely on it.
+- Re-check rules against the 9.1 repackaging and 9.2 keepattributes changes above.
+
+Prefer migrating a legacy module to `androidComponents` over any opt-out; if an opt-out is needed,
+use the 9.4 per-module `android.newDsl.optOut` instead of the global `android.newDsl=false`.
 
 ## Rules
 

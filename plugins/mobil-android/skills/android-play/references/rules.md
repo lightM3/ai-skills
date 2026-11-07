@@ -51,3 +51,64 @@ https://9to5google.com/2026/03/30/android-developer-verifier-app/
 - Full distribution: identity verification required. Limited distribution: no ID, ≤ 20 devices.
   Unregistered: ADB / advanced flow only.
 - Not verified here: fees, exact fingerprint format, API details — point to the Android Developer Console docs.
+
+## Play policy announcement of 29 Oct 2026 — re-check after 2027-02-01
+
+Source: https://support.google.com/googleplay/android-developer/answer/18100766
+(at least 30 days to comply unless a date is given)
+
+- **Local Network Permission** (new): only for core functionality when device pickers are insufficient;
+  apps targeting API 37+ must submit a Play Console declaration.
+- **Manage Contacts Permission** (new): core functionality only, declaration; others use platform pickers/intents.
+- **AppFunctions API** (new): existing policies apply; don't deceive AI agents or bypass security.
+- Subscriptions with eligibility-based discounts (student plans): disclose criteria and post-eligibility pricing.
+- **Location** (clarification): minimum scope; API 37+ use the location button for one-time/infrequent needs;
+  `ACCESS_FINE_LOCATION` requires a Play Console declaration — mandatory **27 Jan 2027**.
+- **SMS / Call Log**: phone-call account verification via `READ_CALL_LOG` must stop — **27 Jan 2027**
+  (announced 15 Jul 2026); consider the SMS User Consent API.
+- Reminders: Play Age Signals API launching globally; Japan authorization by **1 Dec 2026**; trader status
+  declaration in Console from Nov 2026; app quality requirements **Feb 2027**.
+- Earlier 2026: Contacts permissions policy + Android Contact Picker (15 Apr 2026); anonymous/random chat
+  restrictions (15 Jul 2026).
+
+## Trader status — re-check after 2027-02-01
+
+Source: https://support.google.com/googleplay/android-developer/answer/17594752
+
+- All active developer accounts declare trader / non-trader (EEA & UK law, regardless of where apps ship).
+  New accounts at creation; **existing accounts by 1 Feb 2027**. Missing it → update blocks, global removal.
+- Console: Manage account → Account details → About you; per app: Policy and programs → App content.
+- Traders self-certify compliance, add a terms-of-service link; personal accounts publish phone + address.
+- **1 Mar 2027**: contact details, D-U-N-S and ToS shown to all users; in EEA/UK the developer replaces
+  Google in "Offered by" (marketplace model).
+
+## Technical quality requirements — re-check after 2027-04-30
+
+Sources: https://support.google.com/googleplay/android-developer/answer/17492799 ,
+https://developer.android.com/blog/posts/elevating-app-quality-reducing-memory-usage-and-improving-device-migration
+
+From **February 2027** (mobile/tablet; last 28 days, 90th percentile):
+
+Memory (anon RSS + swap), apps — foreground / user-perceived services / background:
+
+| RAM tier | Foreground | UPS | Background |
+|---|---|---|---|
+| < 4 GB | – | – | – |
+| 4 GB | 2 GB | 1 GB | 1 GB |
+| 6 GB | 2.25 GB | 1.25 GB | 1.25 GB |
+| 8 GB | 2.25 GB | 1.5 GB | 1.5 GB |
+| 12 GB | 3.25 GB | 1.75 GB | 1.75 GB |
+| 16 GB | 4.25 GB | 2 GB | 2 GB |
+
+Games: 4 GB 2.25/2.0/2.0, 6 GB 2.75/2.5/2.5, 8 GB 3.5/2.75/2.75, 12 GB 4/3.2/3.2, 16 GB 5/3.5/3.5 GB.
+Bitmap memory: > 200 MB in user-perceived services or background, > 400 MB cached.
+
+DEX optimization (all form factors): ≥ **25% each** of obfuscation, optimization and shrinking when DEX
+is above **10 MB (apps) / 50 MB (games)**; any shrinker (R8). Play Console release overview shows DEX insights.
+
+From **April 2027**: **Zero-tap sign-in restoration** for apps with sign-in (Restore Credentials API, Android 9+)
+after device-to-device transfer or cloud restore. Exempt: Block Store integrations live by 30 Sep 2026,
+enterprise/private apps, games (for now); regulated apps can request an exemption.
+
+Consequence: reduced visibility and publishing capabilities; required for Apps Experience Program / Level Up.
+Related platform change: Android 17 memory limiter (`MemoryLimiter:AnonSwap` exit description).

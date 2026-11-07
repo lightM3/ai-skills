@@ -73,6 +73,33 @@ required; `RangeSliderState.activeRangeStart/End` → `startValue/endValue`;
 Secure text fields default to `TextObfuscationMode.System`. Many Expressive APIs (SplitButton, ButtonGroup,
 FloatingToolbar, flexible top app bars, slot SearchBar) lose `@ExperimentalMaterial3ExpressiveApi`.
 
+#### Material3 1.5 migration snippets (from the release notes)
+
+```kotlin
+// Slider: before
+var value by remember { mutableFloatStateOf(0.5f) }
+Slider(value = value, onValueChange = { value = it })
+// after
+val state = remember { SliderState(value = 0.5f) }   // valueRange / steps are SliderState parameters
+Slider(state = state)                                  // read state.value when you need it
+
+// RangeSlider: before
+var range by remember { mutableStateOf(0.2f..0.8f) }
+RangeSlider(value = range, onValueChange = { range = it })
+// after
+val rangeState = remember { RangeSliderState(startValue = 0.2f, endValue = 0.8f) }
+RangeSlider(state = rangeState)                        // rangeState.startValue..rangeState.endValue
+
+// Renames
+TonalToggleButton(...)            // → FilledTonalToggleButton(...)
+LocalMotionScheme.current         // → MaterialTheme.motionScheme
+rememberModalBottomSheetState()   // → rememberBottomSheetState(...)  (deprecated, not removed)
+```
+
+Not verified here: the exact parameter list of `rememberBottomSheetState` (e.g. how
+`skipPartiallyExpanded` maps) and of `SliderState`'s `onValueChangeFinished` — check the API reference
+or the IDE's deprecation quick-fix ("Replace with") rather than guessing, and say so in the answer.
+
 ## Workflow
 
 1. Read the catalog/build files: current BOM, AGP, compileSdk, Kotlin compose plugin.
