@@ -1,10 +1,26 @@
 # ai-skills
 
-Focused, eval-tested skills for Claude, organized as a plugin marketplace:
-**domain → platform/technology plugin → one skill per library or tool.**
+**Skills that fix what AI coding agents get wrong — and prove it.** Every skill here ships with an
+eval suite that runs the same tasks with and without the skill, so each has a measured effect (Δ)
+instead of a claimed one. If a skill doesn't beat the baseline, it doesn't ship.
 
-Every skill ships with an eval suite that runs the same tasks **with and without** the skill,
-so each one has a measured effect (Δ) instead of a claimed one.
+| Highlights | Without skill | With skill |
+|---|---|---|
+| Migrating an app to Flutter 3.47's standalone `material_ui` / `cupertino_ui` | 0.00 | **1.00** |
+| Fixing a Google Play "16 KB page size" warning (deadline 1 Feb 2027) | 0.00 | **1.00** |
+| First Play release — target API 36 (required since Aug 2026), release signing | 0.00 | **1.00** |
+| Porting `genui` code to the 0.10 API | 0.00 | **1.00** |
+| Riverpod 3.x: `ref.mounted` after `await`, `ProviderContainer.test` | 0.33 | **1.00** |
+
+Default Claude Code model, 2–3 runs per arm; full tables below.
+
+**Focus:** things that changed after the models' training data, version splits, and patterns models
+keep getting wrong. It deliberately does *not* repeat general Flutter guidance — use the official
+[flutter/skills](https://github.com/flutter/skills) for architecture, testing, JSON, routing and
+localization, and this repo for the rest. Measured negatives are published too
+(e.g. [go_router](#go_router-no-skill-needed): the model already knows it, so there's no skill).
+
+Organized as a plugin marketplace: **domain → platform/technology plugin → one skill per library or tool.**
 
 ## Plugins
 
