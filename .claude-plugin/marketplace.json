@@ -10,6 +10,11 @@
       "name": "mobil-flutter",
       "source": "./plugins/mobil-flutter",
       "description": "Flutter skills: state management (Riverpod, Bloc, Provider) and more."
+    },
+    {
+      "name": "mobil-android",
+      "source": "./plugins/mobil-android",
+      "description": "Native Android skills: AGP 9 upgrades, Android 17 (API 37) target changes, Google Play rules, Jetpack Compose upgrades."
     }
   ]
 }

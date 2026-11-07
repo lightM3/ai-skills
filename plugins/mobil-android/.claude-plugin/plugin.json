@@ -1,0 +1,31 @@
+{
+  "name": "mobil-android",
+  "version": "0.1.0",
+  "description": "Native Android skills that keep Claude on current toolchains and rules: AGP 9.x upgrades (built-in Kotlin, new DSL), Android 17 / API 37 behavior changes, Google Play and developer-verification rules, Jetpack Compose upgrades.",
+  "author": {
+    "name": "lightM3",
+    "url": "https://github.com/lightM3"
+  },
+  "repository": "https://github.com/lightM3/ai-skills",
+  "license": "MIT",
+  "keywords": [
+    "16kb-page-size",
+    "agp",
+    "agp9",
+    "android",
+    "android-17",
+    "api-37",
+    "built-in-kotlin",
+    "compose-bom",
+    "developer-verification",
+    "google-play",
+    "gradle",
+    "jetpack-compose",
+    "kotlin",
+    "material3",
+    "migration",
+    "mobile",
+    "release",
+    "targetsdk"
+  ]
+}
