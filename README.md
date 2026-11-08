@@ -176,8 +176,12 @@ grade only the Dart code.
 Measured 2026-11-07 (v0.2.0): 2 runs per arm, default with/without ablation. Prompts carry no
 version hints; each `fixture.sh` builds a small Gradle project the model has to read. Every
 positive case was first baselined with the skills folder removed, so no skill description could
-leak into it. Default model: all 16 cases on v0.2.0. Haiku: the four v0.2.0 cases below were run on
-v0.2.0; the other Haiku numbers come from v0.1.0 of the same skills (marked †).
+leak into it. Both models: every positive case measured on v0.2.0 (Haiku re-run 2026-11-08).
+
+Grader fix (2026-11-08): `play-update-rules` first accepted only NDK r28+ for the app's own native
+code, but the official 16 KB guide also documents `-Wl,-z,max-page-size=16384` for NDK r27 and lower,
+and its targetSdk regex rejected diffs written as "targetSdk = 35 → 36". Both graders were
+corrected to match the official guidance and the case was re-run on both models (numbers below).
 
 **`android-agp`** — AGP 9.x upgrades: latest stable 9.5.0 (Oct 2026, Gradle 9.6.0), built-in Kotlin
 (drop `kotlin-android`, `kotlinOptions` → `kotlin { compilerOptions }`, kapt → KSP or
@@ -188,9 +192,9 @@ repackaging, `keepattributes` wildcards, `optimization {}` + `keepRules/*.keep`,
 
 | Case | Default: with / without | Δ | Haiku: with / without | Δ |
 |---|---|---|---|---|
-| `agp-upgrade-latest` — 8.13 → 9.5, Gradle 9.6, built-in Kotlin, kapt, variant API, explicit targetSdk | 1.00 / 0.00 | **+1.00** | 1.00 / 0.00 † | **+1.00** |
+| `agp-upgrade-latest` — 8.13 → 9.5, Gradle 9.6, built-in Kotlin, kapt, variant API, explicit targetSdk | 1.00 / 0.00 | **+1.00** | 1.00 / 0.00 | **+1.00** |
 | `agp-9x-optimization-dsl` — 9.0 → 9.5, `optimization {}`, keepRules, per-module opt-out, keepattributes | 1.00 / 0.00 | **+1.00** | 1.00 / 0.00 | **+1.00** |
-| `agp-newdsl-classcast` — `ClassCastException` on `BaseExtension` in a convention plugin | 1.00 / 1.00 | 0.00 | 1.00 / 0.50 † | **+0.50** |
+| `agp-newdsl-classcast` — `ClassCastException` on `BaseExtension` in a convention plugin | 1.00 / 1.00 | 0.00 | 1.00 / 0.75 | +0.25 |
 | `agp-ignores-add-dependency` — adding Retrofit is not an upgrade | 1.00 / 1.00 | 0.00 ✓ | — | — |
 
 **`android-target-sdk`** — raising targetSdk/compileSdk with one reference file per API level
@@ -198,16 +202,17 @@ repackaging, `keepattributes` wildcards, `optimization {}` + `keepRules/*.keep`,
 
 | Case | Default: with / without | Δ | Haiku: with / without | Δ |
 |---|---|---|---|---|
-| `sdk37-widget-bitmaps` — `updateAppWidget` throws after targetSdk 37; budget 6 × screen w × h | 1.00 / 0.00 | **+1.00** | 1.00 / 0.00 † | **+1.00** |
+| `sdk37-widget-bitmaps` — `updateAppWidget` throws after targetSdk 37; budget 6 × screen w × h | 1.00 / 0.00 | **+1.00** | 1.00 / 0.00 | **+1.00** |
 | `sdk-jump-34-to-37` — edge-to-edge, FGS limits, `removeFirst`, predictive back, reflection, grouped by version | 1.00 / 0.25 | **+0.75** | 0.75 / 0.50 | +0.25 |
-| `sdk37-target-bump` — SMS OTP delay, `ACCESS_LOCAL_NETWORK`, resizability opt-out, `FLAG_SECURE`, BAL | 1.00 / 1.00 | 0.00 | 0.67 / 0.67 † | 0.00 |
+| `sdk37-target-bump` — SMS OTP delay, `ACCESS_LOCAL_NETWORK`, resizability opt-out, `FLAG_SECURE`, BAL | 1.00 / 1.00 | 0.00 | 1.00 / 0.67 | **+0.33** |
 | `target-sdk-ignores-permission-feature` — a camera-permission flow is not a migration | 1.00 / 1.00 | 0.00 ✓ | — | — |
 
 The default model already knows most Android 17 changes from the betas (stable rollout began
 17 Jun 2026, close to its cutoff), so the single-version review gives no Δ. Without the skill it
 downsamples the widget bitmaps but never ties the crash to the targetSdk 37 change; on the
 34 → 37 jump it hedges or drops whole versions. Haiku's 34 → 37 runs are noisy (1/2 passed in each
-arm on the version regex; judge verdicts 2/2 with the skill vs 1/2 without).
+arm on the version regex; judge verdicts 2/2 with the skill vs 1/2 without). Haiku without the skill
+misses most Android 17 changes in the single-version review (judge 0/2), with it 2/2.
 
 **`android-play`** — dated Play and off-Play rules in `references/rules.md`, each with a source and a
 re-check date: target API 36 (since 31 Aug 2026), 16 KB pages (1 Feb 2027), the 29 Oct 2026 policy
@@ -219,8 +224,8 @@ Singapore, Thailand; global in 2027).
 | Case | Default: with / without | Δ | Haiku: with / without | Δ |
 |---|---|---|---|---|
 | `play-policy-audit` — location, call log, local network, R8/DEX, memory, zero-tap sign-in, trader status | 1.00 / 0.00 | **+1.00** | 1.00 / 0.00 | **+1.00** |
-| `play-update-rules` — targetSdk 35 → 36, 16 KB date, AGP ≥ 8.5.1, NDK r28, vendor `.so` | 1.00 / 0.25 | **+0.75** | 0.63 / 0.25 † | +0.38 |
-| `play-sideload-verification` — website APK in Indonesia: register package + signing key | 1.00 / 0.33 | **+0.67** | 1.00 / 0.33 † | **+0.67** |
+| `play-update-rules` — targetSdk 35 → 36, 16 KB date, AGP ≥ 8.5.1, NDK r28 or linker flags, vendor `.so` | 0.88 / 0.50 | **+0.38** | 1.00 / 0.50 | **+0.50** |
+| `play-sideload-verification` — website APK in Indonesia: register package + signing key | 1.00 / 0.33 | **+0.67** | 1.00 / 0.33 | **+0.67** |
 | `play-ignores-in-app-review` — integrating In-App Review is not a policy question | 1.00 / 1.00 | 0.00 ✓ | — | — |
 
 Without the skill the default model dated the 16 KB rule to 1 Nov 2025, knew developer verification
@@ -233,7 +238,7 @@ or quality deadlines.
 
 | Case | Default: with / without | Δ | Haiku: with / without | Δ |
 |---|---|---|---|---|
-| `compose-bom-latest` — BOM 2026.09.00, compileSdk 37 + AGP ≥ 9.2, `onVisibilityChanged`, `TextObfuscationMode.System` | 1.00 / 0.00 | **+1.00** | 1.00 / 0.00 † | **+1.00** |
+| `compose-bom-latest` — BOM 2026.09.00, compileSdk 37 + AGP ≥ 9.2, `onVisibilityChanged`, `TextObfuscationMode.System` | 1.00 / 0.00 | **+1.00** | 0.83 / 0.00 | **+0.83** |
 | `compose-m3-rc-migration` — `SliderState`, `RangeSliderState`, `rememberBottomSheetState`, `FilledTonalToggleButton`, `motionScheme` | 1.00 / 0.00 | **+1.00** | 1.00 / 0.00 | **+1.00** |
 | `compose-ignores-new-screen` — a plain settings screen is not an upgrade | 1.00 / 1.00 | 0.00 ✓ | — | — |
 

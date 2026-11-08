@@ -1,6 +1,6 @@
 {
   "name": "mobil-android",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Native Android skills that keep Claude on current toolchains and rules: AGP 9.x upgrades (built-in Kotlin, new DSL), Android 17 / API 37 behavior changes, Google Play and developer-verification rules, Jetpack Compose upgrades.",
   "author": {
     "name": "lightM3",
