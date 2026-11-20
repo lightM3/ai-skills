@@ -14,7 +14,7 @@
     {
       "name": "mobil-android",
       "source": "./plugins/mobil-android",
-      "description": "Native Android skills: AGP 9 upgrades, Android 17 (API 37) target changes, Google Play rules, Jetpack Compose upgrades."
+      "description": "Native Android skills: AGP 9 upgrades, Android 15-17 target changes, Google Play rules, Jetpack Compose upgrades, Room 3 migration."
     }
   ]
 }

@@ -16,6 +16,7 @@ the workflow to apply them to *your* project.
 | Native Android: audit against Play's 2027 policy & quality deadlines (location, call log, DEX/memory, trader status) | 0.00 | **1.00** |
 | Native Android: jump targetSdk 34 → 37 with every change mapped to its Android version | 0.25 | **1.00** |
 | Native Android: Material3 1.5 migration (`SliderState`, `rememberBottomSheetState`, renames) | 0.00 | **1.00** |
+| Native Android: Room 2 → Room 3 migration (`androidx.room3`, `@ColumnTypeConverter`, DAO return type converters, `SQLiteConnection`) | 0.00 | **1.00** |
 | Fixing a Google Play "16 KB page size" warning (deadline 1 Feb 2027) | 0.00 | **1.00** |
 | Porting `genui` code to the 0.10 API | 0.00 | **1.00** |
 | Riverpod 3.x: `ref.mounted` after `await`, `ProviderContainer.test` | 0.33 | **1.00** |
@@ -28,7 +29,7 @@ In Claude Code:
 
 ```bash
 claude plugin marketplace add lightM3/ai-skills
-claude plugin install mobil-android@lightm3-skills   # native Android (Kotlin, Gradle, Compose, Play)
+claude plugin install mobil-android@lightm3-skills   # native Android (Kotlin, Gradle, Compose, Room, Play)
 claude plugin install mobil-flutter@lightm3-skills   # Flutter
 ```
 
@@ -47,6 +48,7 @@ or zip it and upload it as a skill on claude.ai.
 | `android-target-sdk` | raise targetSdk/compileSdk — per-version references for Android 15, 16 and 17 (API 35–37) — or debug something that broke after a bump |
 | `android-play` | ship to Google Play, fix Console warnings (target API, 16 KB pages), audit against upcoming policy/quality deadlines, or distribute APKs outside Play (developer verification) |
 | `android-compose` | upgrade the Compose BOM / Material3 (current: BOM 2026.09.00; M3 1.5 RC) and fix what the upgrade breaks |
+| `android-room3` | migrate from Room 2.x to Room 3 (`androidx.room3`, stable since Jul 2026), or fix a build that broke after Room was bumped to room3 |
 
 ### `mobil-flutter` — Flutter
 
@@ -241,6 +243,24 @@ or quality deadlines.
 | `compose-bom-latest` — BOM 2026.09.00, compileSdk 37 + AGP ≥ 9.2, `onVisibilityChanged`, `TextObfuscationMode.System` | 1.00 / 0.00 | **+1.00** | 0.83 / 0.00 | **+0.83** |
 | `compose-m3-rc-migration` — `SliderState`, `RangeSliderState`, `rememberBottomSheetState`, `FilledTonalToggleButton`, `motionScheme` | 1.00 / 0.00 | **+1.00** | 1.00 / 0.00 | **+1.00** |
 | `compose-ignores-new-screen` — a plain settings screen is not an upgrade | 1.00 / 1.00 | 0.00 ✓ | — | — |
+
+**`android-room3`** — Room 2.x → Room 3 (3.0.3; stable since 1 Jul 2026): new `androidx.room3` group
+and package, KSP only, suspend DAOs, the `@ColumnTypeConverter` renames, DAO return type converters for
+LiveData / Paging / RxJava 3 / Guava, `SQLiteConnection`-based migrations and callbacks, `RoomRawQuery`,
+`withWriteTransaction`, `createFlow`, and drivers. Measured 2026-11-20 on v0.3.0, both models; the
+baseline was taken with the skills folder removed. Points the docs don't settle (default driver on
+Android, the Room 3 migration-test helper) are marked "not verified" in the skill.
+
+| Case | Default: with / without | Δ | Haiku: with / without | Δ |
+|---|---|---|---|---|
+| `room3-migrate-app` — Room 2.7 + kapt, LiveData, SupportSQLite migration, `withTransaction`, `InvalidationTracker.Observer` | 1.00 / 0.00 | **+1.00** | 1.00 / 0.00 | **+1.00** |
+| `room3-build-broken` — catalog already on room3 3.0.3, code still on Room 2 APIs (converters, `PagingSource`, `SupportSQLiteQuery`, callback) | 1.00 / 0.00 | **+1.00** | 1.00 / 0.00 | **+1.00** |
+| `room3-ignores-new-query` — adding a DAO query on Room 2.8 is not a migration | 1.00 / 1.00 | 0.00 ✓ | 1.00 / 1.00 | 0.00 ✓ |
+
+Without the skill the default model knew that `androidx.room3` exists (it used `RoomRawQuery` and added
+`room3-paging`) but kept `@TypeConverter`/`@ProvidedTypeConverter`, never registered
+`PagingSourceDaoReturnTypeConverter`, and on the full migration only described the work without writing
+the Room 3 code.
 
 Shared negative `android-ignores-feature-work` (a slug helper + tests) fires none of the four skills.
 Across the default-model runs every skill fired in all of its own with-skill runs (22/22) and in none
