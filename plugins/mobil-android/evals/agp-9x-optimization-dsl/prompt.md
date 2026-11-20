@@ -1,6 +1,6 @@
 ---
 description: Project on AGP 9.0.1 with android.newDsl=false (one module still on applicationVariants) and legacy minify/shrink config. Expect 9.5.0 + Gradle 9.6, the 9.3 optimization { enable = true } DSL with src/main/keepRules/*.keep, per-module android.newDsl.optOut (9.4) instead of the global flag, and the 9.2 R8 keepattributes change.
-tags: [android-agp, android-hard, v2]
+tags: [android-agp, android-hard, v2, h2h]
 max_turns: 14
 allowed_tools: [Read, Glob, Grep, Skill]
 ---

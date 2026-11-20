@@ -1,6 +1,6 @@
 ---
 description: AGP 9.1 project whose build-logic convention plugin uses BaseExtension and generic CommonExtension. Expect ApplicationExtension/LibraryExtension or non-generic CommonExtension, with android.newDsl=false only as a temporary opt-out (removed in AGP 10).
-tags: [android-agp, android-hard]
+tags: [android-agp, android-hard, h2h]
 max_turns: 12
 allowed_tools: [Read, Glob, Grep, Skill]
 ---

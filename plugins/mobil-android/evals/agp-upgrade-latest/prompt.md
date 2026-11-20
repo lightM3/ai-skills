@@ -1,6 +1,6 @@
 ---
 description: AGP 8.13 app with kotlin-android, kapt (Room), kotlinOptions, applicationVariants and no targetSdk. Expect AGP 9.5.x + Gradle 9.6, built-in Kotlin migration, kapt -> KSP or com.android.legacy-kapt, compilerOptions, androidComponents, explicit targetSdk.
-tags: [android-agp, android-hard]
+tags: [android-agp, android-hard, h2h]
 max_turns: 14
 allowed_tools: [Read, Glob, Grep, Skill]
 ---

@@ -38,6 +38,37 @@ or *"what breaks if we move to targetSdk 37?"*. Only want one skill? Every skill
 self-contained: copy `plugins/<plugin>/skills/<skill>/` into your project's `.claude/skills/`,
 or zip it and upload it as a skill on claude.ai.
 
+## vs Google's official Android skills
+
+Google publishes official Android skills ([android/skills](https://github.com/android/skills)).
+Where both target the same job, we ran them **on identical tasks**, same day, same models, same graders
+— in an "edit mode" where every arm can write files and use the web (method and script:
+[bench/](bench/README.md)). Score 0–1, 2 runs per arm, measured 2026-11-20.
+
+| Task | Model | **mobil-android** | Official skill | No skill |
+|---|---|---|---|---|
+| Upgrade an AGP 8.13 app to the latest AGP (`agp-upgrade-latest`) | default | **1.00** | 0.00 | 0.13 |
+| | Haiku | **0.75** | 0.00 | 0.13 |
+| AGP 9.0 → latest: `optimization {}` DSL, keep rules, per-module opt-out (`agp-9x-optimization-dsl`) | default | **1.00** | 0.00 | 0.33 |
+| | Haiku | **1.00** | 0.00 | 0.33 |
+| Fix `BaseExtension` cast after AGP 9 (`agp-newdsl-classcast`) | default | 1.00 | 1.00 | 1.00 |
+| | Haiku | 1.00 | 1.00 | 0.50 |
+| Widget crash after targetSdk 37 (`sdk37-widget-bitmaps`) | default | 1.00 | 1.00 | 1.00 |
+| | Haiku | 1.00 | 1.00 | 0.00 |
+
+Official skills: `agp-9-upgrade` + `r8-analyzer` for the AGP tasks, `glance-appwidget-updates-and-memory`
+for the widget task. What the numbers say:
+
+- **Where they tie, the official skills are good.** The widget skill matches ours and lifts Haiku from 0 to 1.
+- **"Latest" is where they lose.** The official AGP skill does the AGP 9 migration steps (and, with
+  `r8-analyzer`, uses the `optimization {}` DSL), but pins AGP 9.0.1 or 9.4.0 with a Gradle wrapper too old
+  for it, instead of 9.5.0 + Gradle 9.6. That scores below no skill at all, which at least sometimes picks
+  the right Gradle.
+- Ours carries the current version table with a verified date — that's the whole difference on the AGP tasks.
+
+Use both: the official skills cover far more ground (Navigation 3, AppFunctions, CameraX, …); this repo
+covers what changed recently and the dated facts, with the evidence in the tables.
+
 ## What's inside
 
 ### `mobil-android` — native Android
